@@ -210,6 +210,94 @@ const validateAmount = [
     validateRequest
 ];
 
+// User validation for createMember
+const validateCreateMember = [
+    body('employeeId')
+        .trim()
+        .isLength({ min: 1, max: 20 })
+        .withMessage('Employee ID is required and must be between 1 and 20 characters'),
+    body('firstName')
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('First name is required and must be between 1 and 50 characters'),
+    body('lastName')
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Last name is required and must be between 1 and 50 characters'),
+    body('email')
+        .isEmail()
+        .normalizeEmail()
+        .withMessage('Valid email is required'),
+    body('phone')
+        .matches(/^[\+]?[1-9][\d]{0,15}$/)
+        .withMessage('Valid phone number is required'),
+    body('type')
+        .isIn(['full-time', 'part-time', 'contract', 'intern'])
+        .withMessage('Valid employment type is required'),
+    body('address.street')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Street address is required'),
+    body('address.city')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('City is required'),
+    body('address.state')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('State is required'),
+    body('address.zipCode')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Zip code is required'),
+    body('address.country')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Country is required'),
+    body('department')
+        .isIn([
+            'Computer Science & Engineering(CSE)',
+            'Information Technology(IT)',
+            'Electronics & Communication Engineering(ECE)',
+            'Electrical & Electronics Engineering(EEE)',
+            'Mechanical Engineering(MECH)',
+            'Civil Engineering',
+            'Artificial Intelligence & Data Science(AI & DS)',
+            'Master of Business Administration(MBA)',
+            'Cyber Security',
+            'Master of Computer Applications(MCA)'
+        ])
+        .withMessage('Valid department is required'),
+    body('designation')
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Designation is required and must be between 1 and 100 characters'),
+    body('emergencyContact.name')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact name is required'),
+    body('emergencyContact.relationship')
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact relationship is required'),
+    body('emergencyContact.phone')
+        .matches(/^[\+]?[1-9][\d]{0,15}$/)
+        .withMessage('Valid emergency contact phone number is required'),
+    body('emergencyContact.address')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact address must not be empty if provided'),
+    body('password')
+        .isLength({ min: 6 })
+        .withMessage('Password must be at least 6 characters long'),
+    body('currentSalary')
+        .isFloat({ min: 0 })
+        .withMessage('Current salary must be a positive number'),
+    validateRequest
+];
+
 module.exports = {
     validateCharityFund,
     validateChitfund,
@@ -221,5 +309,6 @@ module.exports = {
     validatePagination,
     validateDateRange,
     validateStaffIds,
-    validateAmount
+    validateAmount,
+    validateCreateMember
 }; 

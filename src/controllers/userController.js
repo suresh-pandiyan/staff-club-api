@@ -55,10 +55,32 @@ class UserController {
     });
 
     // @desc    Create a new user (admin only)
-    // @route   POST /api/users
+    // @route   POST /api/users/create-member
     // @access  Private/Admin
     static createMember = asyncHandler(async (req, res) => {
         const userData = req.body;
+
+        // Additional validation for required fields
+        const requiredFields = [
+            'employeeId', 'firstName', 'lastName', 'email', 'phone', 'type', 'address', 'department', 'designation', 'emergencyContact'
+        ];
+
+        for (const field of requiredFields) {
+            if (!userData[field]) {
+                return ResponseHandler.error(res, `${field} is required`, 400);
+            }
+        }
+
+        // Validate address structure
+        if (!userData.address.street || !userData.address.city || !userData.address.state || !userData.address.zipCode) {
+            return ResponseHandler.error(res, 'Complete address information is required', 400);
+        }
+
+        // Validate emergency contact structure
+        if (!userData.emergencyContact.name || !userData.emergencyContact.relationship || !userData.emergencyContact.phone) {
+            return ResponseHandler.error(res, 'Complete emergency contact information is required', 400);
+        }
+
         const newUser = await AuthService.createMember(userData);
         return ResponseHandler.success(res, newUser, 'User created successfully', 201);
     });

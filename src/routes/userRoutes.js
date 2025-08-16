@@ -1,6 +1,7 @@
 const express = require('express');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const UserController = require('../controllers/userController');
+const { validateCreateMember } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -206,6 +207,201 @@ router.get('/:id', UserController.getUserById);
  */
 router.get('/stats', authorizeRoles('admin'), UserController.getUserStats);
 
-router.get('/create-member', authorizeRoles('admin'), UserController.createMember);
+/**
+ * @swagger
+ * /api/users/create-member:
+ *   post:
+ *     summary: Create a new member (Admin only)
+ *     tags: [Users]
+ *     description: Create a new staff member with all required information. Admin access required.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - employeeId
+ *               - firstName
+ *               - lastName
+ *               - email
+ *               - phone
+ *               - type
+ *               - address
+ *               - department
+ *               - designation
+ *               - emergencyContact
+ *               - password
+ *               - currentSalary
+ *             properties:
+ *               employeeId:
+ *                 type: string
+ *                 description: Unique employee identifier
+ *                 example: "EMP001"
+ *               firstName:
+ *                 type: string
+ *                 description: Employee's first name
+ *                 example: "John"
+ *               lastName:
+ *                 type: string
+ *                 description: Employee's last name
+ *                 example: "Doe"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Employee's email address
+ *                 example: "john.doe@company.com"
+ *               phone:
+ *                 type: string
+ *                 description: Employee's phone number
+ *                 example: "+1234567890"
+ *               type:
+ *                 type: string
+ *                 enum: [full-time, part-time, contract, intern]
+ *                 description: Employment type
+ *                 example: "full-time"
+ *               address:
+ *                 type: object
+ *                 required:
+ *                   - street
+ *                   - city
+ *                   - state
+ *                   - zipCode
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                     description: Street address
+ *                     example: "123 Main St"
+ *                   city:
+ *                     type: string
+ *                     description: City
+ *                     example: "New York"
+ *                   state:
+ *                     type: string
+ *                     description: State
+ *                     example: "NY"
+ *                   zipCode:
+ *                     type: string
+ *                     description: ZIP code
+ *                     example: "10001"
+ *                   country:
+ *                     type: string
+ *                     description: Country (optional, defaults to India)
+ *                     example: "India"
+ *               department:
+ *                 type: string
+ *                 enum: [
+ *                   "Computer Science & Engineering(CSE)",
+ *                   "Information Technology(IT)",
+ *                   "Electronics & Communication Engineering(ECE)",
+ *                   "Electrical & Electronics Engineering(EEE)",
+ *                   "Mechanical Engineering(MECH)",
+ *                   "Civil Engineering",
+ *                   "Artificial Intelligence & Data Science(AI & DS)",
+ *                   "Master of Business Administration(MBA)",
+ *                   "Cyber Security",
+ *                   "Master of Computer Applications(MCA)"
+ *                 ]
+ *                 description: Employee's department
+ *                 example: "Computer Science & Engineering(CSE)"
+ *               designation:
+ *                 type: string
+ *                 description: Employee's job designation
+ *                 example: "Software Engineer"
+ *               emergencyContact:
+ *                 type: object
+ *                 required:
+ *                   - name
+ *                   - relationship
+ *                   - phone
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Emergency contact person's name
+ *                     example: "Jane Doe"
+ *                   relationship:
+ *                     type: string
+ *                     description: Relationship to employee
+ *                     example: "Spouse"
+ *                   phone:
+ *                     type: string
+ *                     description: Emergency contact phone number
+ *                     example: "+1234567890"
+ *                   address:
+ *                     type: string
+ *                     description: Emergency contact address (optional)
+ *                     example: "456 Oak Ave, New York, NY 10002"
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *                 description: Employee's password
+ *                 example: "password123"
+ *               currentSalary:
+ *                 type: number
+ *                 minimum: 0
+ *                 description: Employee's current salary
+ *                 example: 75000
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin, moderator, manager, supervisor]
+ *                 default: user
+ *                 description: User role (optional)
+ *                 example: "user"
+ *               joinDate:
+ *                 type: string
+ *                 format: date
+ *                 description: Employee join date (optional, defaults to current date)
+ *                 example: "2024-01-15"
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User created successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/Employee'
+ *                     token:
+ *                       type: string
+ *                       description: JWT token for the new user
+ *                       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+ *       400:
+ *         description: Bad request - Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - Admin access required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Conflict - User already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.post('/create-member', authorizeRoles('admin'), validateCreateMember, UserController.createMember);
 
 module.exports = router; 

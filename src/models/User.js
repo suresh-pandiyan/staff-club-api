@@ -85,6 +85,22 @@ const userSchema = new mongoose.Schema({
             default: 'India'
         }
     },
+    department: {
+        type: String,
+        enum: [
+            'Computer Science & Engineering(CSE)',
+            'Information Technology(IT)',
+            'Electronics & Communication Engineering(ECE)',
+            'Electrical & Electronics Engineering(EEE)',
+            'Mechanical Engineering(MECH)',
+            'Civil Engineering',
+            'Artificial Intelligence & Data Science(AI & DS)',
+            'Master of Business Administration(MBA)',
+            'Cyber Security',
+            'Master of Computer Applications(MCA)',
+        ],
+        default: null
+    },
     designation: {
         type: String,
         required: [true, 'Please add a designation'],
@@ -133,11 +149,9 @@ const userSchema = new mongoose.Schema({
             trim: true
         }
     },
-
     // Authentication fields
     password: {
         type: String,
-        required: [true, 'Please add a password'],
         minlength: [6, 'Password must be at least 6 characters'],
         select: false
     },

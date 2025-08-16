@@ -268,9 +268,20 @@ class AuthService {
 
     static async createMember(userData) {
         const {
-            employeeId, firstName, lastName, email, phone, password,
-            role = 'user', type = 'full-time', joinDate = new Date(),
-            address, designation, currentSalary, emergencyContact
+            employeeId,
+            firstName,
+            lastName,
+            email,
+            phone,
+            password,
+            role = 'user',
+            type = 'full-time',
+            joinDate = new Date(),
+            address,
+            department,
+            designation,
+            currentSalary,
+            emergencyContact
         } = userData;
 
         // Check if user already exists
@@ -293,6 +304,7 @@ class AuthService {
             type,
             joinDate,
             address,
+            department,
             designation,
             currentSalary,
             emergencyContact
