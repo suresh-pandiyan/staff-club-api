@@ -206,4 +206,6 @@ router.get('/:id', UserController.getUserById);
  */
 router.get('/stats', authorizeRoles('admin'), UserController.getUserStats);
 
+router.get('/create-member', authorizeRoles('admin'), UserController.createMember);
+
 module.exports = router; 

@@ -265,6 +265,54 @@ class AuthService {
 
         return user.fullProfile;
     }
+
+    static async createMember(userData) {
+        const {
+            employeeId, firstName, lastName, email, phone, password,
+            role = 'user', type = 'full-time', joinDate = new Date(),
+            address, designation, currentSalary, emergencyContact
+        } = userData;
+
+        // Check if user already exists
+        const existingUser = await User.findOne({
+            $or: [{ email }, { employeeId }]
+        });
+        if (existingUser) {
+            throw new Error('User already exists with this email or employee ID');
+        }
+
+        // Create user
+        const user = await User.create({
+            employeeId,
+            firstName,
+            lastName,
+            email,
+            phone,
+            password,
+            role,
+            type,
+            joinDate,
+            address,
+            designation,
+            currentSalary,
+            emergencyContact
+        });
+
+        // Generate token
+        const token = user.getSignedJwtToken();
+
+        // Update last login
+        user.lastLogin = new Date();
+        await user.save();
+
+        // Cache user data
+        await RedisHelper.set(`user:${user._id}`, user.fullProfile, 3600);
+
+        return {
+            user: user.fullProfile,
+            token
+        };
+    }
 }
 
 module.exports = AuthService; 

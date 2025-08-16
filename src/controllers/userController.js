@@ -53,6 +53,15 @@ class UserController {
 
         return ResponseHandler.success(res, stats, 'User statistics retrieved');
     });
+
+    // @desc    Create a new user (admin only)
+    // @route   POST /api/users
+    // @access  Private/Admin
+    static createMember = asyncHandler(async (req, res) => {
+        const userData = req.body;
+        const newUser = await AuthService.createMember(userData);
+        return ResponseHandler.success(res, newUser, 'User created successfully', 201);
+    });
 }
 
-module.exports = UserController; 
+module.exports = UserController;
