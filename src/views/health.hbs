@@ -1,0 +1,207 @@
+<div class="row">
+    <div class="col-12">
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-heartbeat me-2"></i>System Health Status
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="health-indicator health-ok"></span>
+                            <h5 class="mb-0">Server Status: <span class="badge bg-success status-badge">{{health.status}}</span></h5>
+                        </div>
+                        <p class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            Last Updated: {{formatDate health.timestamp}}
+                        </p>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <div class="mb-2">
+                            <strong>Environment:</strong> 
+                            <span class="badge bg-info">{{health.environment}}</span>
+                        </div>
+                        <div>
+                            <strong>Version:</strong> 
+                            <span class="badge bg-secondary">{{health.version}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Metrics -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-tachometer-alt me-2"></i>System Metrics
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-clock me-1"></i>Uptime:</span>
+                        <strong>{{formatUptime health.uptime}}</strong>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-memory me-1"></i>Memory Usage:</span>
+                        <strong>{{formatBytes health.memory.heapUsed}}</strong>
+                    </div>
+                    <div class="progress mt-1" style="height: 8px;">
+                        <div class="progress-bar bg-success" style="width: {{calculateMemoryPercent health.memory.heapUsed health.memory.heapTotal}}%"></div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-database me-1"></i>Total Memory:</span>
+                        <strong>{{formatBytes health.memory.heapTotal}}</strong>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between">
+                        <span><i class="fas fa-microchip me-1"></i>External Memory:</span>
+                        <strong>{{formatBytes health.memory.external}}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-link me-2"></i>API Endpoints
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-shield-alt me-2"></i>Authentication</span>
+                        <a href="{{health.endpoints.api}}" class="btn btn-sm btn-outline-primary">Test</a>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-users me-2"></i>Users</span>
+                        <a href="{{health.endpoints.users}}" class="btn btn-sm btn-outline-primary">Test</a>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-code me-2"></i>API Health</span>
+                        <a href="/api/health" class="btn btn-sm btn-outline-success">JSON</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card metric-card h-100">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="fas fa-tools me-2"></i>Quick Actions
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="refreshHealth()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh Status
+                    </button>
+                    <button class="btn btn-outline-info" onclick="testAPI()">
+                        <i class="fas fa-vial me-2"></i>Test API
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="viewLogs()">
+                        <i class="fas fa-file-alt me-2"></i>View Logs
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>System Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Node.js Version:</strong></td>
+                                    <td>{{nodeVersion}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Platform:</strong></td>
+                                    <td>{{platform}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Architecture:</strong></td>
+                                    <td>{{architecture}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table table-borderless">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Process ID:</strong></td>
+                                    <td>{{processId}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Working Directory:</strong></td>
+                                    <td>{{workingDir}}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Environment:</strong></td>
+                                    <td><span class="badge bg-info">{{health.environment}}</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshHealth() {
+    location.reload();
+}
+
+function testAPI() {
+    fetch('/api/health')
+        .then(response => response.json())
+        .then(data => {
+            alert('API Test Successful!\nStatus: ' + data.status);
+        })
+        .catch(error => {
+            alert('API Test Failed: ' + error.message);
+        });
+}
+
+function viewLogs() {
+    alert('Log viewing functionality would be implemented here.');
+}
+
+// Auto-refresh every 30 seconds
+setTimeout(() => {
+    location.reload();
+}, 30000);
+</script> 

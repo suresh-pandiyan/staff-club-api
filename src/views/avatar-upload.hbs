@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avatar Upload - Staff Club</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .preview-image {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .file-info {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-user-circle me-2"></i>
+                            Avatar Upload
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Supported formats:</strong> JPG, JPEG, PNG, GIF, WebP<br>
+                            <strong>Maximum size:</strong> 5MB<br>
+                            <strong>Image will be:</strong> Resized to 300x300px and converted to JPEG
+                        </div>
+
+                        <form id="avatarForm" enctype="multipart/form-data">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5>Drag & Drop your image here</h5>
+                                <p class="text-muted">or click to browse</p>
+                                <input type="file" id="avatarInput" name="avatar" accept="image/*" style="display: none;">
+                            </div>
+
+                            <div id="previewContainer" class="text-center mt-3" style="display: none;">
+                                <img id="previewImage" class="preview-image mb-3" alt="Preview">
+                                <div class="file-info">
+                                    <strong>File:</strong> <span id="fileName"></span><br>
+                                    <strong>Size:</strong> <span id="fileSize"></span><br>
+                                    <strong>Type:</strong> <span id="fileType"></span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn" disabled>
+                                    <i class="fas fa-upload me-2"></i>
+                                    Upload Avatar
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-lg ms-2" id="cancelBtn" style="display: none;">
+                                    <i class="fas fa-times me-2"></i>
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+
+                        <div id="resultContainer" class="mt-4" style="display: none;">
+                            <div class="alert" id="resultAlert">
+                                <div id="resultMessage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>
+                            Avatar Management
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-info w-100" id="getAvatarBtn">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Get Avatar Info
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <button class="btn btn-danger w-100" id="deleteAvatarBtn">
+                                    <i class="fas fa-trash me-2"></i>
+                                    Delete Avatar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const avatarInput = document.getElementById('avatarInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const avatarForm = document.getElementById('avatarForm');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultAlert = document.getElementById('resultAlert');
+        const resultMessage = document.getElementById('resultMessage');
+        const getAvatarBtn = document.getElementById('getAvatarBtn');
+        const deleteAvatarBtn = document.getElementById('deleteAvatarBtn');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('click', () => avatarInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        avatarInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showResult('Please select an image file.', 'danger');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showResult('File size too large. Maximum size is 5MB.', 'danger');
+                return;
+            }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+                uploadBtn.disabled = false;
+                cancelBtn.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+
+            // Show file info
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileType.textContent = file.type;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form submission
+        avatarForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!avatarInput.files[0]) {
+                showResult('Please select a file to upload.', 'danger');
+                return;
+            }
+
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Uploading...';
+
+            const formData = new FormData();
+            formData.append('avatar', avatarInput.files[0]);
+
+            try {
+                const response = await fetch('/api/auth/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult('Avatar uploaded successfully!', 'success');
+                    resetForm();
+                } else {
+                    showResult(result.message || 'Upload failed.', 'danger');
+                }
+            } catch (error) {
+                showResult('Network error. Please try again.', 'danger');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-upload me-2"></i>Upload Avatar';
+            }
+        });
+
+        // Cancel button
+        cancelBtn.addEventListener('click', () => {
+            resetForm();
+        });
+
+        function resetForm() {
+            avatarInput.value = '';
+            previewContainer.style.display = 'none';
+            uploadBtn.disabled = true;
+            cancelBtn.style.display = 'none';
+            resultContainer.style.display = 'none';
+        }
+
+        // Get avatar info
+        getAvatarBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/avatar', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    const message = `Avatar: ${result.data.avatar}<br>Has Custom Avatar: ${result.data.hasAvatar ? 'Yes' : 'No'}`;
+                    showResult(message, 'info');
+                } else {
+                    showResult(result.message || 'Failed to get avatar info.', 'danger');
+                }
+            } catch (error) {
+                showResult('Network error. Please try again.', 'danger');
+            }
+        });
+
+        // Delete avatar
+        deleteAvatarBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete your avatar?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/avatar', {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult('Avatar deleted successfully!', 'success');
+                } else {
+                    showResult(result.message || 'Failed to delete avatar.', 'danger');
+                }
+            } catch (error) {
+                showResult('Network error. Please try again.', 'danger');
+            }
+        });
+
+        function showResult(message, type) {
+            resultAlert.className = `alert alert-${type}`;
+            resultMessage.innerHTML = message;
+            resultContainer.style.display = 'block';
+        }
+
+        function getToken() {
+            // This should be replaced with actual token retrieval logic
+            return localStorage.getItem('token') || prompt('Please enter your JWT token:');
+        }
+    </script>
+</body>
+</html> 
