@@ -1,7 +1,8 @@
 class ResponseHandler {
-    static success(res, data = null, message = 'Success', statusCode = 200) {
-        return res.status(statusCode).json({
+    static success(res, data = null, message = 'Success') {
+        return res.status(200).json({
             success: true,
+             status: 200,
             message,
             data,
             timestamp: new Date().toISOString()
