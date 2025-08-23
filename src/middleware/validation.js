@@ -298,6 +298,111 @@ const validateCreateMember = [
     validateRequest
 ];
 
+// User validation for updateMember (all fields optional)
+const validateUpdateMember = [
+    param('id')
+        .trim()
+        .isMongoId()
+        .withMessage('Valid user ID is required'),
+    body('employeeId')
+        .optional()
+        .trim()
+        .isLength({ min: 1, max: 20 })
+        .withMessage('Employee ID must be between 1 and 20 characters'),
+    body('firstName')
+        .optional()
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('First name must be between 1 and 50 characters'),
+    body('lastName')
+        .optional()
+        .trim()
+        .isLength({ min: 1, max: 50 })
+        .withMessage('Last name must be between 1 and 50 characters'),
+    body('email')
+        .optional()
+        .isEmail()
+        .normalizeEmail()
+        .withMessage('Valid email is required'),
+    body('phone')
+        .optional()
+        .matches(/^[\+]?[1-9][\d]{0,15}$/)
+        .withMessage('Valid phone number is required'),
+    body('type')
+        .optional()
+        .isIn(['full-time', 'part-time', 'contract', 'intern'])
+        .withMessage('Valid employment type is required'),
+    body('address.street')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Street address must not be empty if provided'),
+    body('address.city')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('City must not be empty if provided'),
+    body('address.state')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('State must not be empty if provided'),
+    body('address.zipCode')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Zip code must not be empty if provided'),
+    body('address.country')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Country must not be empty if provided'),
+    body('department')
+        .optional()
+        .isIn([
+            'Computer Science & Engineering(CSE)',
+            'Information Technology(IT)',
+            'Electronics & Communication Engineering(ECE)',
+            'Electrical & Electronics Engineering(EEE)',
+            'Mechanical Engineering(MECH)',
+            'Civil Engineering',
+            'Artificial Intelligence & Data Science(AI & DS)',
+            'Master of Business Administration(MBA)',
+            'Cyber Security',
+            'Master of Computer Applications(MCA)'
+        ])
+        .withMessage('Valid department is required'),
+    body('designation')
+        .optional()
+        .trim()
+        .isLength({ min: 1, max: 100 })
+        .withMessage('Designation must be between 1 and 100 characters'),
+    body('emergencyContact.name')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact name must not be empty if provided'),
+    body('emergencyContact.relationship')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact relationship must not be empty if provided'),
+    body('emergencyContact.phone')
+        .optional()
+        .matches(/^[\+]?[1-9][\d]{0,15}$/)
+        .withMessage('Valid emergency contact phone number is required'),
+    body('emergencyContact.address')
+        .optional()
+        .trim()
+        .isLength({ min: 1 })
+        .withMessage('Emergency contact address must not be empty if provided'),
+    body('currentSalary')
+        .optional()
+        .isFloat({ min: 0 })
+        .withMessage('Current salary must be a positive number'),
+    validateRequest
+];
+
 module.exports = {
     validateCharityFund,
     validateChitfund,
@@ -310,5 +415,6 @@ module.exports = {
     validateDateRange,
     validateStaffIds,
     validateAmount,
-    validateCreateMember
+    validateCreateMember,
+    validateUpdateMember
 }; 

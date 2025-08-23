@@ -1,7 +1,7 @@
 const express = require('express');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 const UserController = require('../controllers/userController');
-const { validateCreateMember } = require('../middleware/validation');
+const { validateCreateMember, validateUpdateMember } = require('../middleware/validation');
 
 const router = express.Router();
 
@@ -403,5 +403,164 @@ router.get('/stats', authorizeRoles('admin'), UserController.getUserStats);
  *               $ref: '#/components/schemas/ErrorResponse'
  */
 router.post('/create-member', authorizeRoles('admin'), validateCreateMember, UserController.createMember);
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *   put:
+ *     summary: Update an existing member (Admin only)
+ *     tags: [Users]
+ *     description: Update an existing member's information. Admin access required.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to update
+ *         example: "68a0a15a5833d387f2373463"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               employeeId:
+ *                 type: string
+ *                 description: Employee ID (optional)
+ *                 example: "EMP001"
+ *               firstName:
+ *                 type: string
+ *                 description: First name (optional)
+ *                 example: "John"
+ *               lastName:
+ *                 type: string
+ *                 description: Last name (optional)
+ *                 example: "Doe"
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 description: Email address (optional)
+ *                 example: "john.doe@example.com"
+ *               phone:
+ *                 type: string
+ *                 description: Phone number (optional)
+ *                 example: "+1234567890"
+ *               type:
+ *                 type: string
+ *                 enum: [full-time, part-time, contract, intern]
+ *                 description: Employment type (optional)
+ *                 example: "full-time"
+ *               address:
+ *                 type: object
+ *                 description: Address information (optional)
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                     example: "123 Main St"
+ *                   city:
+ *                     type: string
+ *                     example: "New York"
+ *                   state:
+ *                     type: string
+ *                     example: "NY"
+ *                   zipCode:
+ *                     type: string
+ *                     example: "10001"
+ *                   country:
+ *                     type: string
+ *                     example: "USA"
+ *               department:
+ *                 type: string
+ *                 enum: [
+ *                   'Computer Science & Engineering(CSE)',
+ *                   'Information Technology(IT)',
+ *                   'Electronics & Communication Engineering(ECE)',
+ *                   'Electrical & Electronics Engineering(EEE)',
+ *                   'Mechanical Engineering(MECH)',
+ *                   'Civil Engineering',
+ *                   'Artificial Intelligence & Data Science(AI & DS)',
+ *                   'Master of Business Administration(MBA)',
+ *                   'Cyber Security',
+ *                   'Master of Computer Applications(MCA)'
+ *                 ]
+ *                 description: Department (optional)
+ *                 example: "Computer Science & Engineering(CSE)"
+ *               designation:
+ *                 type: string
+ *                 description: Job designation (optional)
+ *                 example: "Senior Software Engineer"
+ *               currentSalary:
+ *                 type: number
+ *                 minimum: 0
+ *                 description: Current salary (optional)
+ *                 example: 80000
+ *               emergencyContact:
+ *                 type: object
+ *                 description: Emergency contact information (optional)
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     example: "Jane Doe"
+ *                   relationship:
+ *                     type: string
+ *                     example: "Spouse"
+ *                   phone:
+ *                     type: string
+ *                     example: "+1234567890"
+ *                   address:
+ *                     type: string
+ *                     example: "456 Oak Ave, New York, NY 10002"
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "User updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Employee'
+ *       400:
+ *         description: Bad request - Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       401:
+ *         description: Unauthorized - Invalid or missing token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       403:
+ *         description: Forbidden - Admin access required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *       409:
+ *         description: Conflict - Email or Employee ID already exists
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ */
+router.put('/update-member/:id', authorizeRoles('admin'), validateUpdateMember, UserController.updateMember);
 
 module.exports = router; 

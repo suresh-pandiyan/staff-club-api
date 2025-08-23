@@ -325,6 +325,70 @@ class AuthService {
             token
         };
     }
+
+    // Update member (admin only)
+    static async updateMember(userId, updateData) {
+        const {
+            employeeId,
+            firstName,
+            lastName,
+            email,
+            phone,
+            type,
+            address,
+            department,
+            designation,
+            currentSalary,
+            emergencyContact
+        } = updateData;
+
+        // Check if user exists
+        const existingUser = await User.findById(userId);
+        if (!existingUser) {
+            throw new Error('User not found');
+        }
+
+        // Check if email or employeeId is being changed and if it conflicts with another user
+        if (email && email !== existingUser.email) {
+            const emailExists = await User.findOne({ email, _id: { $ne: userId } });
+            if (emailExists) {
+                throw new Error('Email already exists with another user');
+            }
+        }
+
+        if (employeeId && employeeId !== existingUser.employeeId) {
+            const employeeIdExists = await User.findOne({ employeeId, _id: { $ne: userId } });
+            if (employeeIdExists) {
+                throw new Error('Employee ID already exists with another user');
+            }
+        }
+
+        // Prepare update object with only provided fields
+        const updateObject = {};
+        if (employeeId) updateObject.employeeId = employeeId;
+        if (firstName) updateObject.firstName = firstName;
+        if (lastName) updateObject.lastName = lastName;
+        if (email) updateObject.email = email;
+        if (phone) updateObject.phone = phone;
+        if (type) updateObject.type = type;
+        if (address) updateObject.address = address;
+        if (department) updateObject.department = department;
+        if (designation) updateObject.designation = designation;
+        if (currentSalary !== undefined) updateObject.currentSalary = currentSalary;
+        if (emergencyContact) updateObject.emergencyContact = emergencyContact;
+
+        // Update user
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateObject,
+            { new: true, runValidators: true }
+        );
+
+        // Clear user cache
+        await RedisHelper.del(`user:${userId}`);
+
+        return updatedUser.fullProfile;
+    }
 }
 
 module.exports = AuthService; 

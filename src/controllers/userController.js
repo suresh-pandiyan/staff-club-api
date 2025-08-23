@@ -84,6 +84,22 @@ class UserController {
         const newUser = await AuthService.createMember(userData);
         return ResponseHandler.success(res, newUser, 'User created successfully', 201);
     });
+
+    // @desc    Update an existing member (admin only)
+    // @route   PUT /api/users/:id
+    // @access  Private/Admin
+    static updateMember = asyncHandler(async (req, res) => {
+        const userId = req.params.id;
+        const updateData = req.body;
+
+        // Validate that at least one field is provided for update
+        if (Object.keys(updateData).length === 0) {
+            return ResponseHandler.error(res, 'At least one field must be provided for update', 400);
+        }
+
+        const updatedUser = await AuthService.updateMember(userId, updateData);
+        return ResponseHandler.success(res, updatedUser, 'User updated successfully');
+    });
 }
 
 module.exports = UserController;
