@@ -90,6 +90,7 @@ router.post('/',
  */
 router.get('/',
     authenticateToken,
+    authorizeRoles(['admin', 'manager']),
     eventsController.getAllEvents
 );
 
@@ -363,4 +364,56 @@ router.get('/summary',
     eventsController.getEventsWithSummary
 );
 
+/**
+ * @swagger
+ * /api/events/{eventId}/contributors:
+ *   get:
+ *     summary: Get contributors for an event
+ *     tags: [Events]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: eventId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Event ID
+ *     responses:
+ *       200:
+ *         description: List of contributors for the event
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       user:
+ *                         $ref: '#/components/schemas/Employee'
+ *                       contributedAmount:
+ *                         type: number
+ *                       paymentStatus:
+ *                         type: string
+ *                         enum: [paid, unpaid]
+ *       404:
+ *         description: Event not found
+ */
+router.get('/contributors/:eventId',
+    authenticateToken,
+    authorizeRoles(['admin', 'manager']),
+    eventsController.getEventContributors
+);
+
+router.patch(
+    '/:eventId/contributors/:userId/status',
+    authenticateToken,
+    authorizeRoles(['admin', 'manager']),
+    eventsController.updateContributorStatus
+);
 module.exports = router; 

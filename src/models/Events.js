@@ -1,17 +1,28 @@
 const mongoose = require('mongoose');
 
+const contributorSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    contributedAmount: { type: Number, required: true },
+    paymentStatus: { type: String, enum: ["paid", "unpaid","host"], default: "paid" }
+});
+
 const eventsSchema = new mongoose.Schema({
     // Reference to Financial Year
+    contributors: [contributorSchema],
     financeYearId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'FinancialYear',
         required: [true, 'Financial year is required']
     },
-
     // Event name
     eventName: {
         type: String,
         required: [true, 'Event name is required'],
+        trim: true
+    },
+    hostEmployeeId: {
+        type: String,
+        required: [true, 'Host EmployeeId is required'],
         trim: true
     },
 
@@ -21,6 +32,10 @@ const eventsSchema = new mongoose.Schema({
         required: [true, 'Event description is required'],
         trim: true
     },
+    eventLocation: {
+        type: String,
+        required: [true, 'Event location is required'],
+    },
 
     // Target amount for the event
     eventAmount: {
@@ -29,17 +44,23 @@ const eventsSchema = new mongoose.Schema({
         min: [1, 'Event amount must be greater than 0']
     },
 
+    eventTime: { type: String, required: true },
     // When the event was created
     eventCreated: {
         type: Date,
-        required: [true, 'Event created date is required'],
+        // required: [true, 'Event created date is required'],
         default: Date.now
     },
+
 
     // When the event was closed
     eventClosed: {
         type: Date,
         default: null
+    },
+    eventStatus: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true // Adds createdAt and updatedAt fields

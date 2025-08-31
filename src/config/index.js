@@ -6,8 +6,8 @@ const config = {
     mongodb: {
         uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/staff-club',
         options: {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+         //   useNewUrlParser: true,
+          //  useUnifiedTopology: true,
         }
     },
 

@@ -41,15 +41,19 @@ const authenticateToken = async (req, res, next) => {
 };
 
 const authorizeRoles = (...roles) => {
+
     return (req, res, next) => {
-        if (!req.user) {
+        // console.log(req.user, 'req user in auth roles');
+        // console.log(roles[0]?.includes(req?.user?.role), 'roles');
+
+        if (!req?.user) {
             return res.status(401).json({
                 success: false,
                 error: 'Not authorized to access this route'
             });
         }
 
-        if (!roles.includes(req.user.role)) {
+        if (!roles[0]?.includes(req?.user?.role)) {
             return res.status(403).json({
                 success: false,
                 error: `User role ${req.user.role} is not authorized to access this route`

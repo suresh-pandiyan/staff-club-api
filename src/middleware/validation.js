@@ -125,6 +125,10 @@ const validateFinancialYear = [
         .optional()
         .isBoolean()
         .withMessage('Currently active must be a boolean'),
+    body('eventTime')
+        .notEmpty().withMessage('Event time is required')
+        .matches(/^([9]\d|2[0-3]):([0-5]\d)$/)
+        .withMessage('Event time must be in HH:mm format (e.g., 12:00, 23:45)'),
     validateRequest
 ];
 

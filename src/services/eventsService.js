@@ -8,12 +8,11 @@ class EventsService {
      */
     async createEvent(eventData) {
         try {
-            // Validate financial year exists
+            //  Validate financial year exists
             const financialYear = await FinancialYear.findById(eventData.financeYearId);
             if (!financialYear) {
                 throw new Error('Financial year not found');
             }
-
             const event = new Events(eventData);
             return await event.save();
         } catch (error) {
@@ -39,6 +38,8 @@ class EventsService {
             return await Events.find(query)
                 .populate('financeYearId')
                 .sort({ eventCreated: -1 });
+
+
         } catch (error) {
             throw new Error(`Error fetching events: ${error.message}`);
         }
@@ -66,6 +67,9 @@ class EventsService {
      * Update event
      */
     async updateEvent(eventId, updateData) {
+        console.log(eventId, 'eventId in service');
+        console.log(updateData, 'updateData in service');
+
         try {
             const event = await Events.findById(eventId);
 
@@ -74,9 +78,9 @@ class EventsService {
             }
 
             // Prevent updating if event is closed
-            if (event.status === 'closed' && updateData.eventAmount) {
-                throw new Error('Cannot update amount for closed event');
-            }
+            // if (event.status === 'closed' && updateData.eventAmount) {
+            //     throw new Error('Cannot update amount for closed event');
+            // }
 
             Object.assign(event, updateData);
             return await event.save();
@@ -208,6 +212,89 @@ class EventsService {
             return eventsWithSummary;
         } catch (error) {
             throw new Error(`Error getting events with summary: ${error.message}`);
+        }
+    }
+
+    /**
+     * Get contributors for an event
+     */
+    // async getEventContributors(eventId) {
+    //     try {
+    //         const event = await Events.findById(eventId).populate('contributors.user');
+    //         if (!event) {
+    //             throw new Error('Event not found');
+    //         }
+    //         // Populate user details for each contributor
+    //         return event.contributors.map(contributor => ({
+    //             user: contributor.user,
+    //             contributedAmount: contributor.contributedAmount,
+    //             paymentStatus: contributor.paymentStatus
+    //         }));
+    //     } catch (error) {
+    //         throw new Error(`Error fetching contributors: ${error.message}`);
+    //     }
+    // }
+    
+    async getEventContributors(eventId, search = "") {
+        try {
+            const event = await Events.findById(eventId).populate({
+                path: "contributors.user",
+                select: "firstName lastName email employeeId",
+            });
+    
+            if (!event) {
+                throw new Error("Event not found");
+            }
+    
+            let contributors = event.contributors;
+    
+            // 🔍 Apply search filter if provided
+            if (search && search.trim() !== "") {
+                const regex = new RegExp(search, "i"); // case-insensitive
+                contributors = contributors.filter(c =>
+                    regex.test(c.user?.firstName) ||
+                    regex.test(c.user?.lastName) ||
+                    regex.test(c.user?.email) ||
+                    regex.test(c.user?.employeeId)
+                );
+            }
+    
+            return contributors.map(contributor => ({
+                user: contributor.user,
+                contributedAmount: contributor.contributedAmount,
+                paymentStatus: contributor.paymentStatus
+            }));
+        } catch (error) {
+            throw new Error(`Error fetching contributors: ${error.message}`);
+        }
+    }
+    
+
+
+    async updateContributorStatus(eventId, userId, paymentStatus) {
+        try {
+            const event = await Events.findById(eventId);
+            if (!event) {
+                throw new Error('Event not found');
+            }
+    
+            // Find contributor
+            const contributor = event.contributors.find(
+                (c) => c.user.toString() === userId.toString()
+            );
+    
+            if (!contributor) {
+                throw new Error('Contributor not found');
+            }
+    
+            // ✅ Update directly (multiple hosts allowed)
+            contributor.paymentStatus = paymentStatus;
+    
+            await event.save();
+    
+            return contributor; // return updated contributor only
+        } catch (error) {
+            throw new Error(`Error updating contributor status: ${error.message}`);
         }
     }
 }
