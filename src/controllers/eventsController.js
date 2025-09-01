@@ -9,14 +9,26 @@ class EventsController {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
+                console.log('Validation errors:', errors.array());
                 return res.status(400).json({
                     success: false,
                     message: 'Validation failed',
                     errors: errors.array()
                 });
             }
+            
+            console.log('Request body:', req.body);
+            
             const users = await User.find({ isActive: true });
             const hostUser = users.find(u => u.employeeId === hostEmployeeId);
+            
+            if (!hostUser) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Host employee not found'
+                });
+            }
+            
             const contributors = users?.map(u => {
                 if (hostUser && u.employeeId === hostEmployeeId) {
                     return {
@@ -31,10 +43,15 @@ class EventsController {
                     paymentStatus: "paid"
                 };
             });
+            
             const eventData = {
                 ...req.body,
                 contributors,
+                eventStatus: true  // Explicitly set to true
             };
+            
+            console.log('Event data to save:', eventData);
+            
             const event = await eventsService.createEvent(eventData);
             res.status(201).json({
                 success: true,
@@ -42,6 +59,7 @@ class EventsController {
                 data: event
             });
         } catch (error) {
+            console.error('Event creation error:', error);
             res.status(400).json({
                 success: false,
                 message: error.message

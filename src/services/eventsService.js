@@ -214,27 +214,7 @@ class EventsService {
             throw new Error(`Error getting events with summary: ${error.message}`);
         }
     }
-
-    /**
-     * Get contributors for an event
-     */
-    // async getEventContributors(eventId) {
-    //     try {
-    //         const event = await Events.findById(eventId).populate('contributors.user');
-    //         if (!event) {
-    //             throw new Error('Event not found');
-    //         }
-    //         // Populate user details for each contributor
-    //         return event.contributors.map(contributor => ({
-    //             user: contributor.user,
-    //             contributedAmount: contributor.contributedAmount,
-    //             paymentStatus: contributor.paymentStatus
-    //         }));
-    //     } catch (error) {
-    //         throw new Error(`Error fetching contributors: ${error.message}`);
-    //     }
-    // }
-    
+   
     async getEventContributors(eventId, search = "") {
         try {
             const event = await Events.findById(eventId).populate({

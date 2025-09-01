@@ -91,21 +91,33 @@ const validateEvent = [
         .trim()
         .isLength({ min: 3, max: 100 })
         .withMessage('Event name must be between 3 and 100 characters'),
+    body('hostEmployeeId')
+        .trim()
+        .notEmpty()
+        .withMessage('Host employee ID is required'),
     body('eventDescription')
         .trim()
         .isLength({ min: 10, max: 500 })
         .withMessage('Event description must be between 10 and 500 characters'),
+    body('eventLocation')
+        .trim()
+        .notEmpty()
+        .withMessage('Event location is required'),
     body('eventAmount')
-        .isFloat({ min: 0 })
-        .withMessage('Event amount must be a positive number'),
-    body('eventCreated')
-        .optional()
-        .isISO8601()
-        .withMessage('Valid date format required for event created date'),
+        .isNumeric()
+        .withMessage('Event amount must be a number')
+        .isFloat({ min: 1 })
+        .withMessage('Event amount must be greater than 0'),
+    body('eventTime')
+        .trim()
+        .notEmpty()
+        .withMessage('Event time is required'),
     body('eventClosed')
-        .optional()
+        .trim()
+        .notEmpty()
+        .withMessage('Event end date is required')
         .isISO8601()
-        .withMessage('Valid date format required for event closed date'),
+        .withMessage('Event end date must be a valid date format'),
     validateRequest
 ];
 

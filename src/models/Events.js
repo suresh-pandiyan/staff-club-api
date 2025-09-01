@@ -53,10 +53,10 @@ const eventsSchema = new mongoose.Schema({
     },
 
 
-    // When the event was closed
+    // When the event ends
     eventClosed: {
         type: Date,
-        default: null
+        required: [true, 'Event end date is required']
     },
     eventStatus: {
         type: Boolean,
@@ -78,43 +78,65 @@ eventsSchema.virtual('formattedCreatedDate').get(function () {
 
 // Virtual for formatted closed date
 eventsSchema.virtual('formattedClosedDate').get(function () {
-    return this.eventClosed ? this.eventClosed.toLocaleDateString() : null;
+    return this.eventClosed.toLocaleDateString();
 });
 
-// Virtual for status
+// Virtual for status - based on current date vs event end date
 eventsSchema.virtual('status').get(function () {
-    return this.eventClosed ? 'closed' : 'active';
+    const now = new Date();
+    return now > this.eventClosed ? 'completed' : 'active';
 });
 
 // Virtual for duration in days
 eventsSchema.virtual('duration').get(function () {
-    const endDate = this.eventClosed || new Date();
+    const endDate = this.eventClosed;
     const diffTime = Math.abs(endDate - this.eventCreated);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays;
 });
 
-// Pre-save middleware to validate event
+// Pre-save middleware to validate event and auto-update status
 eventsSchema.pre('save', function (next) {
     if (this.eventAmount <= 0) {
         return next(new Error('Event amount must be greater than 0'));
     }
 
-    if (this.eventClosed && this.eventClosed < this.eventCreated) {
-        return next(new Error('Event closed date cannot be before created date'));
+    // Only validate if eventClosed is explicitly set and not null
+    if (this.eventClosed && this.eventCreated) {
+        // Use date comparison that accounts for same day
+        const closedDate = new Date(this.eventClosed);
+        const createdDate = new Date(this.eventCreated);
+        
+        // Reset time to start of day for comparison
+        closedDate.setHours(0, 0, 0, 0);
+        createdDate.setHours(0, 0, 0, 0);
+        
+        if (closedDate < createdDate) {
+            return next(new Error('Event closed date cannot be before created date'));
+        }
+    }
+
+    // Set eventStatus to true for new events, update existing ones based on time
+    if (this.isNew) {
+        this.eventStatus = true;
+    } else if (this.eventClosed) {
+        const now = new Date();
+        this.eventStatus = now <= this.eventClosed;
     }
 
     next();
 });
 
-// Static method to get active events
+// Static method to get active events (events that haven't ended yet)
 eventsSchema.statics.getActive = function () {
-    return this.find({ eventClosed: null }).populate('financeYearId');
+    const now = new Date();
+    return this.find({ eventClosed: { $gt: now } }).populate('financeYearId');
 };
 
-// Static method to get closed events
-eventsSchema.statics.getClosed = function () {
-    return this.find({ eventClosed: { $ne: null } }).populate('financeYearId');
+// Static method to get completed events (events that have ended)
+eventsSchema.statics.getCompleted = function () {
+    const now = new Date();
+    return this.find({ eventClosed: { $lte: now } }).populate('financeYearId');
 };
 
 // Static method to get events by financial year
@@ -122,16 +144,16 @@ eventsSchema.statics.getByFinancialYear = function (financeYearId) {
     return this.find({ financeYearId }).populate('financeYearId');
 };
 
-// Instance method to close event
-eventsSchema.methods.closeEvent = function () {
-    this.eventClosed = new Date();
+// Instance method to extend event end date
+eventsSchema.methods.extendEvent = function (newEndDate) {
+    this.eventClosed = newEndDate;
     return this.save();
 };
 
-// Instance method to reopen event
-eventsSchema.methods.reopenEvent = function () {
-    this.eventClosed = null;
-    return this.save();
+// Instance method to check if event is currently active
+eventsSchema.methods.isActive = function () {
+    const now = new Date();
+    return now <= this.eventClosed;
 };
 
 // Configure toJSON to include virtuals
