@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const User = require('./User');
 
 const emergencyFundSchema = new mongoose.Schema({
     // Reference to Financial Year
@@ -7,35 +8,33 @@ const emergencyFundSchema = new mongoose.Schema({
         ref: 'FinancialYear',
         required: [true, 'Financial year is required']
     },
-
     // Emergency fund name
-    emergencyFundName: {
-        type: String,
-        required: [true, 'Emergency fund name is required'],
+    employeeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Employee Id is required'],
         trim: true
     },
-
-    // Emergency fund description
-    emergencyFundDescription: {
-        type: String,
-        required: [true, 'Emergency fund description is required'],
+    nomineeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: [true, 'Nominee Id is required'],
         trim: true
     },
-
-    // Target amount for the emergency fund
+    totalMonths: { type: Number, required: [true, 'Total months is required'], default: 12 },
+    paidMonths: { type: Number, required: [true, 'Paid months is required'], default: 0 },
+    status: { type: String, enum: ["active", "closed"], required: [true, 'Status is required'], default: "active" },
     emergencyFundAmount: {
         type: Number,
         required: [true, 'Emergency fund amount is required'],
         min: [1, 'Emergency fund amount must be greater than 0']
     },
-
     // When the emergency fund was created
     emergencyFundCreated: {
         type: Date,
         required: [true, 'Emergency fund created date is required'],
         default: Date.now
     },
-
     // When the emergency fund was closed
     emergencyFundClosed: {
         type: Date,
@@ -45,44 +44,59 @@ const emergencyFundSchema = new mongoose.Schema({
     timestamps: true // Adds createdAt and updatedAt fields
 });
 
+ // emergencyFundName: {
+    //     type: String,
+    //     required: [true, 'Emergency fund name is required'],
+    //     trim: true
+    // },
+    // Emergency fund description
+    // emergencyFundDescription: {
+    //     type: String,
+    //     required: [true, 'Emergency fund description is required'],
+    //     trim: true
+    // },
+    // Target amount for the emergency fund
+
 // Indexes for efficient queries
 emergencyFundSchema.index({ financeYearId: 1 });
 emergencyFundSchema.index({ emergencyFundCreated: 1 });
 emergencyFundSchema.index({ emergencyFundClosed: 1 });
 
 // Virtual for formatted created date
-emergencyFundSchema.virtual('formattedCreatedDate').get(function () {
-    return this.emergencyFundCreated.toLocaleDateString();
-});
+// emergencyFundSchema.virtual('formattedCreatedDate').get(function () {
+//     return this.emergencyFundCreated.toLocaleDateString();
+// });
 
 // Virtual for formatted closed date
-emergencyFundSchema.virtual('formattedClosedDate').get(function () {
-    return this.emergencyFundClosed ? this.emergencyFundClosed.toLocaleDateString() : null;
-});
+// emergencyFundSchema.virtual('formattedClosedDate').get(function () {
+//     return this.emergencyFundClosed ? this.emergencyFundClosed.toLocaleDateString() : null;
+// });
 
 // Virtual for status
-emergencyFundSchema.virtual('status').get(function () {
-    return this.emergencyFundClosed ? 'closed' : 'active';
-});
+// emergencyFundSchema.virtual('status').get(function () {
+//     return this.emergencyFundClosed ? 'closed' : 'active';
+// });
 
 // Virtual for duration in days
-emergencyFundSchema.virtual('duration').get(function () {
-    const endDate = this.emergencyFundClosed || new Date();
-    const diffTime = Math.abs(endDate - this.emergencyFundCreated);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-});
+// emergencyFundSchema.virtual('duration').get(function () {
+//     const endDate = this.emergencyFundClosed || new Date();
+//     const diffTime = Math.abs(endDate - this.emergencyFundCreated);
+//     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+//     return diffDays;
+// });
 
 // Pre-save middleware to validate emergency fund
-emergencyFundSchema.pre('save', function (next) {
+emergencyFundSchema.pre('save',async  function (next) {
     if (this.emergencyFundAmount <= 0) {
         return next(new Error('Emergency fund amount must be greater than 0'));
     }
-
     if (this.emergencyFundClosed && this.emergencyFundClosed < this.emergencyFundCreated) {
         return next(new Error('Emergency fund closed date cannot be before created date'));
     }
-
+    // const user = await User.findById(this.employeeId).select('shareValue');
+    // if (user && user.shareValue > 6000) {
+    //     return next(new Error('User with share value above 6000 cannot request emergency fund.'));
+    // }
     next();
 });
 

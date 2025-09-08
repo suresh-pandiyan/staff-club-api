@@ -76,8 +76,16 @@ financialYearSchema.statics.setActiveFinancialYear = function (financeYearId) {
 
 // Instance method to check if a date falls within this financial year
 financialYearSchema.methods.isDateInRange = function (date) {
-    const checkDate = new Date(date);
-    return checkDate >= this.startFrom && checkDate <= this.endTo;
+    // Normalize all dates to midnight UTC for comparison
+    const normalize = d => {
+        const nd = new Date(d);
+        nd.setUTCHours(0, 0, 0, 0);
+        return nd;
+    };
+    const checkDate = normalize(date);
+    const start = normalize(this.startFrom);
+    const end = normalize(this.endTo);
+    return checkDate >= start && checkDate <= end;
 };
 
 // Configure toJSON to include virtuals

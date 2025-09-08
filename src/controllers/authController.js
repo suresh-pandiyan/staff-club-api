@@ -212,21 +212,25 @@ const validateRegister = [
         .isISO8601()
         .withMessage('Join date must be a valid date'),
     body('address.street')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('Street address is required'),
+        .withMessage('Street address cannot be empty'),
     body('address.city')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('City is required'),
+        .withMessage('City cannot be empty'),
     body('address.state')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('State is required'),
+        .withMessage('State cannot be empty'),
     body('address.zipCode')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('Zip code is required'),
+        .withMessage('Zip code cannot be empty'),
     body('designation')
         .trim()
         .isLength({ min: 2, max: 100 })
@@ -235,14 +239,17 @@ const validateRegister = [
         .isFloat({ min: 0 })
         .withMessage('Current salary must be a positive number'),
     body('emergencyContact.name')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('Emergency contact name is required'),
+        .withMessage('Emergency contact name cannot be empty'),
     body('emergencyContact.relationship')
+        .optional()
         .trim()
         .notEmpty()
-        .withMessage('Emergency contact relationship is required'),
+        .withMessage('Emergency contact relationship cannot be empty'),
     body('emergencyContact.phone')
+        .optional()
         .matches(/^[\+]?[1-9][\d]{0,15}$/)
         .withMessage('Please provide a valid emergency contact phone number')
 ];

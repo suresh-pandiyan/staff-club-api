@@ -17,7 +17,7 @@ class AuthService {
             $or: [{ email }, { employeeId }]
         });
         if (existingUser) {
-            throw new Error('User already exists with this email or employee ID');
+            throw new Error('User already exists this email or employee ID');
         }
 
         // Create user
@@ -40,9 +40,9 @@ class AuthService {
         // Generate token
         const token = user.getSignedJwtToken();
 
-        // Update last login
+        // Update last login without triggering validation
         user.lastLogin = new Date();
-        await user.save();
+        await user.save({ validateBeforeSave: false });
 
         // Cache user data
         await RedisHelper.set(`user:${user._id}`, user.fullProfile, 3600);
@@ -82,9 +82,9 @@ class AuthService {
         // Generate token
         const token = user.getSignedJwtToken();
 
-        // Update last login
+        // Update last login without triggering validation
         user.lastLogin = new Date();
-        await user.save();
+        await user.save({ validateBeforeSave: false });
 
         // Cache user data
         await RedisHelper.set(`user:${user._id}`, user.fullProfile, 3600);
@@ -313,9 +313,9 @@ class AuthService {
         // Generate token
         const token = user.getSignedJwtToken();
 
-        // Update last login
+        // Update last login without triggering validation
         user.lastLogin = new Date();
-        await user.save();
+        await user.save({ validateBeforeSave: false });
 
         // Cache user data
         await RedisHelper.set(`user:${user._id}`, user.fullProfile, 3600);

@@ -12,9 +12,7 @@ class EmergencyFundController {
                     errors: errors.array()
                 });
             }
-
             const emergencyFund = await emergencyFundService.createEmergencyFund(req.body);
-
             res.status(201).json({
                 success: true,
                 message: 'Emergency fund created successfully',
@@ -27,16 +25,9 @@ class EmergencyFundController {
             });
         }
     }
-
-    async getAllEmergencyFunds(req, res) {
+    async getEmergencyFundsByFinancialYear(req, res) {
         try {
-            const filters = {
-                financeYearId: req.query.financeYearId,
-                status: req.query.status
-            };
-
-            const emergencyFunds = await emergencyFundService.getAllEmergencyFunds(filters);
-
+            const emergencyFunds = await emergencyFundService.getAllEmergencyFunds(req.query);
             res.status(200).json({
                 success: true,
                 message: 'Emergency funds retrieved successfully',
@@ -49,24 +40,6 @@ class EmergencyFundController {
             });
         }
     }
-
-    async getEmergencyFundById(req, res) {
-        try {
-            const emergencyFund = await emergencyFundService.getEmergencyFundById(req.params.id);
-
-            res.status(200).json({
-                success: true,
-                message: 'Emergency fund retrieved successfully',
-                data: emergencyFund
-            });
-        } catch (error) {
-            res.status(404).json({
-                success: false,
-                message: error.message
-            });
-        }
-    }
-
     async updateEmergencyFund(req, res) {
         try {
             const errors = validationResult(req);
@@ -92,15 +65,15 @@ class EmergencyFundController {
             });
         }
     }
-
     async deleteEmergencyFund(req, res) {
         try {
             await emergencyFundService.deleteEmergencyFund(req.params.id);
-
-            res.status(200).json({
-                success: true,
-                message: 'Emergency fund deleted successfully'
-            });
+            res.status(200).json(
+                {
+                    success: true,
+                    message: 'Emergency fund deleted successfully'
+                }
+            );
         } catch (error) {
             res.status(404).json({
                 success: false,
@@ -109,17 +82,16 @@ class EmergencyFundController {
         }
     }
 
-    async getEmergencyFundsByFinancialYear(req, res) {
+    async getEmergencyFundById(req, res) {
         try {
-            const emergencyFunds = await emergencyFundService.getEmergencyFundsByFinancialYear(req.params.financeYearId);
-
+            const emergencyFund = await emergencyFundService.getEmergencyFundById(req.params.id);
             res.status(200).json({
                 success: true,
-                message: 'Emergency funds retrieved successfully',
-                data: emergencyFunds
+                message: 'Emergency fund retrieved successfully',
+                data: emergencyFund
             });
         } catch (error) {
-            res.status(400).json({
+            res.status(404).json({
                 success: false,
                 message: error.message
             });

@@ -366,7 +366,7 @@ router.get('/summary',
 
 /**
  * @swagger
- * /api/events/{eventId}/contributors:
+ * /api/events/contributors/{eventId}:
  *   get:
  *     summary: Get contributors for an event
  *     tags: [Events]
@@ -379,6 +379,17 @@ router.get('/summary',
  *         schema:
  *           type: string
  *         description: Event ID
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [host, paid, unpaid]
+ *         description: Filter contributors by payment status (host, paid, unpaid)
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search contributors by name, email, or employeeId
  *     responses:
  *       200:
  *         description: List of contributors for the event
@@ -400,7 +411,7 @@ router.get('/summary',
  *                         type: number
  *                       paymentStatus:
  *                         type: string
- *                         enum: [paid, unpaid]
+ *                         enum: [paid, unpaid, host]
  *       404:
  *         description: Event not found
  */

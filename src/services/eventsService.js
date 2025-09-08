@@ -24,6 +24,7 @@ class EventsService {
      * Get all events
      */
     async getAllEvents(filters = {}) {
+        console.log(filters, 'events filters');
         try {
             const query = {};
 
@@ -67,20 +68,45 @@ class EventsService {
      * Update event
      */
     async updateEvent(eventId, updateData) {
-        console.log(eventId, 'eventId in service');
-        console.log(updateData, 'updateData in service');
-
         try {
             const event = await Events.findById(eventId);
-
             if (!event) {
-                throw new Error('Event not found');
+                const users = await require('../models/User').find({ isActive: true });
+                return null; // Let controller handle 404
             }
 
-            // Prevent updating if event is closed
-            // if (event.status === 'closed' && updateData.eventAmount) {
-            //     throw new Error('Cannot update amount for closed event');
-            // }
+            let contributors = event.contributors;
+
+            // If host is updated, update contributors accordingly
+            if (updateData.hostEmployeeId && updateData.hostEmployeeId !== event.hostEmployeeId) {
+                contributors = users.map(u => {
+                    if (u.employeeId === updateData.hostEmployeeId) {
+                        return {
+                            user: u._id,
+                            contributedAmount: 0,
+                            paymentStatus: 'host'
+                        };
+                    }
+                    return {
+                        user: u._id,
+                        contributedAmount: updateData?.eventAmount || event?.eventAmount,
+                        paymentStatus: 'paid'
+                    };
+                });
+                updateData.contributors = contributors;
+            } else if (updateData.eventAmount && updateData.eventAmount !== event.eventAmount) {
+                // If only eventAmount is updated, update contributedAmount for all 'paid' contributors
+                contributors = contributors.map(contributor => {
+                    if (contributor.paymentStatus === 'paid') {
+                        return {
+                            ...contributor.toObject(),
+                            contributedAmount: updateData.eventAmount
+                        };
+                    }
+                    return contributor.toObject ? contributor.toObject() : contributor;
+                });
+                updateData.contributors = contributors;
+            }
 
             Object.assign(event, updateData);
             return await event.save();
@@ -99,13 +125,11 @@ class EventsService {
             if (!event) {
                 throw new Error('Event not found');
             }
-
             // Check if there are any collections
             const collections = await EventCollection.find({ eventId: eventId });
             if (collections.length > 0) {
                 throw new Error('Cannot delete event with existing collections');
             }
-
             return await Events.findByIdAndDelete(eventId);
         } catch (error) {
             throw new Error(`Error deleting event: ${error.message}`);
@@ -249,29 +273,25 @@ class EventsService {
         }
     }
     
-
-
     async updateContributorStatus(eventId, userId, paymentStatus) {
         try {
             const event = await Events.findById(eventId);
             if (!event) {
                 throw new Error('Event not found');
             }
-    
             // Find contributor
             const contributor = event.contributors.find(
                 (c) => c.user.toString() === userId.toString()
             );
-    
             if (!contributor) {
                 throw new Error('Contributor not found');
             }
-    
             // ✅ Update directly (multiple hosts allowed)
             contributor.paymentStatus = paymentStatus;
-    
+            if (paymentStatus === 'host') {
+                contributor.contributedAmount = 0;
+            }
             await event.save();
-    
             return contributor; // return updated contributor only
         } catch (error) {
             throw new Error(`Error updating contributor status: ${error.message}`);

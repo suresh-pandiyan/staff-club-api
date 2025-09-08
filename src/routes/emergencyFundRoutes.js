@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const emergencyFundController = require('../controllers/emergencyFundController');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
-const { validateEmergencyFund } = require('../middleware/validation');
+const { validateEmergencyFund, validateId } = require('../middleware/validation');
 
 /**
  * @swagger
@@ -90,7 +90,7 @@ router.post('/',
  */
 router.get('/',
     authenticateToken,
-    emergencyFundController.getAllEmergencyFunds
+    emergencyFundController.getEmergencyFundsByFinancialYear
 );
 
 /**
@@ -187,6 +187,7 @@ router.put('/:id',
 router.delete('/:id',
     authenticateToken,
     authorizeRoles(['admin']),
+    validateId,
     emergencyFundController.deleteEmergencyFund
 );
 
@@ -220,10 +221,10 @@ router.delete('/:id',
  *                   items:
  *                     $ref: '#/components/schemas/EmergencyFundResponse'
  */
-router.get('/financial-year/:financeYearId',
-    authenticateToken,
-    emergencyFundController.getEmergencyFundsByFinancialYear
-);
+// router.get('/:financeYearId',
+//     authenticateToken,
+//     emergencyFundController.getEmergencyFundsByFinancialYear
+// );
 
 /**
  * @swagger

@@ -60,27 +60,31 @@ const userSchema = new mongoose.Schema({
     address: {
         street: {
             type: String,
-            required: [true, 'Please add a street address'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         city: {
             type: String,
-            required: [true, 'Please add a city'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         state: {
             type: String,
-            required: [true, 'Please add a state'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         zipCode: {
             type: String,
-            required: [true, 'Please add a zip code'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         country: {
             type: String,
-            required: [true, 'Please add a country'],
+            required: false,
             trim: true,
             default: 'India'
         }
@@ -128,21 +132,21 @@ const userSchema = new mongoose.Schema({
     emergencyContact: {
         name: {
             type: String,
-            required: [true, 'Please add emergency contact name'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         relationship: {
             type: String,
-            required: [true, 'Please add relationship'],
-            trim: true
+            required: false,
+            trim: true,
+            default: ''
         },
         phone: {
             type: String,
-            required: [true, 'Please add emergency contact phone'],
-            match: [
-                /^[\+]?[1-9][\d]{0,15}$/,
-                'Please add a valid phone number'
-            ]
+            required: false,
+            trim: true,
+            default: ''
         },
         address: {
             type: String,

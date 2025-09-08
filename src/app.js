@@ -11,6 +11,8 @@ const exphbs = require('express-handlebars');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./config/swagger');
+const cron = require('node-cron');
+const Events = require('./models/Events');
 
 const config = require('./config');
 const { connectDB } = require('./config/database');
@@ -344,6 +346,30 @@ app.use('/api/emergency-funds', emergencyFundRoutes);
 app.use('/api/events', eventsRoutes);
 app.use('/api/financial-years', financialYearRoutes);
 app.use('/api/loans', loanRoutes);
+
+// Schedule job to run every day at 11:59 PM
+cron.schedule('59 23 * * *', async () => {
+    try {
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        // Find events closing today
+        const events = await Events.find({
+            eventClosed: { $gte: now, $lt: tomorrow },
+            eventStatus: true
+        });
+        for (const event of events) {
+            event.eventStatus = false;
+            await event.save();
+        }
+        if (events.length > 0) {
+            console.log(`[CRON] Closed ${events.length} events at 11:59 PM`);
+        }
+    } catch (err) {
+        console.error('[CRON] Error updating event statuses:', err);
+    }
+});
 
 // 404 handler
 app.use(notFound);

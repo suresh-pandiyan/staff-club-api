@@ -62,7 +62,7 @@ class UserController {
 
         // Additional validation for required fields
         const requiredFields = [
-            'employeeId', 'firstName', 'lastName', 'email', 'phone', 'type', 'address', 'department', 'designation', 'emergencyContact'
+            'employeeId', 'firstName', 'lastName', 'email', 'phone', 'type', 'department', 'designation'
         ];
 
         for (const field of requiredFields) {
@@ -71,14 +71,17 @@ class UserController {
             }
         }
 
-        // Validate address structure
-        if (!userData.address.street || !userData.address.city || !userData.address.state || !userData.address.zipCode) {
-            return ResponseHandler.error(res, 'Complete address information is required', 400);
+        // Address and emergency contact are now optional, but if provided, they should be complete
+        if (userData.address && (userData.address.street || userData.address.city || userData.address.state || userData.address.zipCode)) {
+            if (!userData.address.street || !userData.address.city || !userData.address.state || !userData.address.zipCode) {
+                return ResponseHandler.error(res, 'If address is provided, all address fields are required', 400);
+            }
         }
 
-        // Validate emergency contact structure
-        if (!userData.emergencyContact.name || !userData.emergencyContact.relationship || !userData.emergencyContact.phone) {
-            return ResponseHandler.error(res, 'Complete emergency contact information is required', 400);
+        if (userData.emergencyContact && (userData.emergencyContact.name || userData.emergencyContact.relationship || userData.emergencyContact.phone)) {
+            if (!userData.emergencyContact.name || !userData.emergencyContact.relationship || !userData.emergencyContact.phone) {
+                return ResponseHandler.error(res, 'If emergency contact is provided, all emergency contact fields are required', 400);
+            }
         }
 
         const newUser = await AuthService.createMember(userData);

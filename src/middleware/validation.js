@@ -60,17 +60,26 @@ const validateEmergencyFund = [
     body('financeYearId')
         .isMongoId()
         .withMessage('Valid financial year ID is required'),
-    body('emergencyFundName')
-        .trim()
-        .isLength({ min: 3, max: 100 })
-        .withMessage('Emergency fund name must be between 3 and 100 characters'),
-    body('emergencyFundDescription')
-        .trim()
-        .isLength({ min: 10, max: 500 })
-        .withMessage('Emergency fund description must be between 10 and 500 characters'),
+    body('employeeId')
+        .isMongoId()
+        .withMessage('Employee ID is required'),
+    body('nomineeId')
+        .isMongoId()
+        .withMessage('Nominee ID is required'),
+    // body('emergencyFundName')
+    //     .trim()
+    //     .isLength({ min: 3, max: 100 })
+    //     .withMessage('Emergency fund name must be between 3 and 100 characters'),
+    // body('emergencyFundDescription')
+    //     .trim()
+    //     .isLength({ min: 10, max: 500 })
+    //     .withMessage('Emergency fund description must be between 10 and 500 characters'),
     body('emergencyFundAmount')
-        .isFloat({ min: 0 })
-        .withMessage('Emergency fund amount must be a positive number'),
+        .notEmpty()
+        .withMessage('Emergency fund amount is required')
+        .bail() // 👈 stops here if empty
+        .isFloat({ min: 0, max: 6000 })
+        .withMessage('Emergency fund amount not greater than 6000'),
     body('emergencyFundCreated')
         .optional()
         .isISO8601()

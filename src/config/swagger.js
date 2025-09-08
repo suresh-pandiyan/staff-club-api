@@ -286,6 +286,58 @@ const options = {
                             }
                         }
                     }
+                },
+                EventInput: {
+                    type: 'object',
+                    required: [
+                        'eventName',
+                        'eventDescription',
+                        'eventLocation',
+                        'eventAmount',
+                        'eventTime',
+                        'eventClosed',
+                        'hostEmployeeId',
+                        'financeYearId'
+                    ],
+                    properties: {
+                        eventName: { type: 'string', example: 'Annual Day' },
+                        eventDescription: { type: 'string', example: 'Annual celebration event' },
+                        eventLocation: { type: 'string', example: 'Auditorium' },
+                        eventAmount: { type: 'number', example: 500 },
+                        eventTime: { type: 'string', example: '18:00' },
+                        eventClosed: { type: 'string', format: 'date', example: '2024-06-30' },
+                        hostEmployeeId: { type: 'string', example: 'EMP001', description: 'Employee ID of the host. Host pays nothing, others pay eventAmount.' },
+                        financeYearId: { type: 'string', example: '665a1b2c3d4e5f6a7b8c9d0e', description: 'MongoDB ObjectId of the financial year. Event must be within this year.' }
+                    },
+                    description: 'When creating or updating an event, the host (by empid) pays nothing, all others pay eventAmount by default. Contributors are set automatically.'
+                },
+                EventResponse: {
+                    type: 'object',
+                    properties: {
+                        _id: { type: 'string', example: '665a1b2c3d4e5f6a7b8c9d0e' },
+                        eventName: { type: 'string', example: 'Annual Day' },
+                        eventDescription: { type: 'string', example: 'Annual celebration event' },
+                        eventLocation: { type: 'string', example: 'Auditorium' },
+                        eventAmount: { type: 'number', example: 500 },
+                        eventTime: { type: 'string', example: '18:00' },
+                        eventClosed: { type: 'string', format: 'date', example: '2024-06-30' },
+                        eventCreated: { type: 'string', format: 'date', example: '2024-06-01' },
+                        hostEmployeeId: { type: 'string', example: 'EMP001' },
+                        financeYearId: { type: 'string', example: '665a1b2c3d4e5f6a7b8c9d0e' },
+                        eventStatus: { type: 'boolean', example: true, description: 'True if event is active, false if closed.' },
+                        contributors: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    user: { type: 'string', description: 'User ObjectId' },
+                                    contributedAmount: { type: 'number', example: 500 },
+                                    paymentStatus: { type: 'string', enum: ['paid', 'unpaid', 'host'], example: 'paid' }
+                                }
+                            },
+                            description: 'Host has paymentStatus=host and contributedAmount=0. Others have paymentStatus=unpaid or paid.'
+                        }
+                    }
                 }
             }
         },
