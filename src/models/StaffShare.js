@@ -90,6 +90,12 @@ staffShareSchema.statics.getByMonth = function (financeYearId, month) {
         .populate('financeYearId staffId');
 };
 
+// Static method to get effective share amount for a staff member
+staffShareSchema.statics.getEffectiveShareAmount = async function (staffId, financeYearId) {
+    const MemberSettings = mongoose.model('MemberSettings');
+    return await MemberSettings.getEffectiveShareAmount(staffId, financeYearId);
+};
+
 // Static method to get total shares for a staff member
 staffShareSchema.statics.getTotalShares = function (staffId, financeYearId = null) {
     const match = { staffId };
@@ -132,6 +138,74 @@ staffShareSchema.statics.getStaffSummary = function (financeYearId) {
         },
         { $sort: { totalAmount: -1 } }
     ]);
+};
+
+// Static method to get expected vs actual collections with effective share amounts
+staffShareSchema.statics.getExpectedVsActualWithEffectiveAmounts = async function (financeYearId) {
+    const MemberSettings = mongoose.model('MemberSettings');
+
+    // Get all effective share amounts for this financial year
+    const effectiveAmounts = await MemberSettings.getAllEffectiveShareAmounts(financeYearId);
+
+    // Get actual collections
+    const actualCollections = await this.aggregate([
+        { $match: { financeYearId: mongoose.Types.ObjectId(financeYearId) } },
+        {
+            $group: {
+                _id: {
+                    month: '$shareMonth',
+                    staffId: '$staffId'
+                },
+                totalAmount: { $sum: '$shareAmount' }
+            }
+        },
+        { $sort: { '_id.month': 1 } }
+    ]);
+
+    // Organize by month
+    const monthlyData = {};
+    for (let month = 1; month <= 12; month++) {
+        monthlyData[month] = {
+            month,
+            monthName: new Date(2024, month - 1, 1).toLocaleDateString('en-US', { month: 'long' }),
+            expectedAmount: 0,
+            actualAmount: 0,
+            expectedCount: 0,
+            actualCount: 0,
+            staffDetails: []
+        };
+    }
+
+    // Calculate expected amounts for each month
+    effectiveAmounts.effectiveAmounts.forEach(staff => {
+        for (let month = 1; month <= 12; month++) {
+            monthlyData[month].expectedAmount += staff.effectiveAmount;
+            monthlyData[month].expectedCount += 1;
+            monthlyData[month].staffDetails.push({
+                staffId: staff.staffId,
+                staffName: staff.staffName,
+                employeeId: staff.employeeId,
+                expectedAmount: staff.effectiveAmount,
+                isCustom: staff.isCustom
+            });
+        }
+    });
+
+    // Add actual collections
+    actualCollections.forEach(item => {
+        const month = item._id.month;
+        monthlyData[month].actualAmount += item.totalAmount;
+        monthlyData[month].actualCount += 1;
+    });
+
+    return {
+        financialYear: effectiveAmounts.financialYear,
+        defaultAmount: effectiveAmounts.defaultAmount,
+        totalStaff: effectiveAmounts.totalStaff,
+        monthlyData: Object.values(monthlyData),
+        totalExpected: Object.values(monthlyData).reduce((sum, month) => sum + month.expectedAmount, 0),
+        totalActual: Object.values(monthlyData).reduce((sum, month) => sum + month.actualAmount, 0)
+    };
 };
 
 // Instance method to update share amount
